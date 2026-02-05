@@ -70,8 +70,8 @@ public class TailOperator extends AbstractStreamOperator<Void>
     public void open() throws Exception {
         super.open();
 
-        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-        int attemptNum = getRuntimeContext().getAttemptNumber();
+        int indexOfThisSubtask = getRuntimeContext().getTaskInfo().getIndexOfThisSubtask();
+        int attemptNum = getRuntimeContext().getTaskInfo().getAttemptNumber();
 
         FeedbackKey<StreamRecord<IterationRecord<?>>> feedbackKey =
                 OperatorUtils.createFeedbackKey(iterationId, feedbackIndex);
@@ -109,8 +109,8 @@ public class TailOperator extends AbstractStreamOperator<Void>
         SubtaskFeedbackKey<?> key =
                 OperatorUtils.createFeedbackKey(iterationId, feedbackIndex)
                         .withSubTaskIndex(
-                                getRuntimeContext().getIndexOfThisSubtask(),
-                                getRuntimeContext().getAttemptNumber());
+                                getRuntimeContext().getTaskInfo().getIndexOfThisSubtask(),
+                                getRuntimeContext().getTaskInfo().getAttemptNumber());
         Checkpoints<?> checkpoints = CheckpointsBroker.get().getCheckpoints(key);
         if (checkpoints != null) {
             checkpoints.abort(checkpointId);

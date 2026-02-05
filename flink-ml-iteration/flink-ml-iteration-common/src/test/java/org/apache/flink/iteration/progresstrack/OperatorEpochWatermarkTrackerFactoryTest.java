@@ -19,9 +19,11 @@
 package org.apache.flink.iteration.progresstrack;
 
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.ParallelSourceFunction;
+import org.apache.flink.streaming.api.functions.source.legacy.ParallelSourceFunction;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractInput;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
@@ -60,9 +62,10 @@ public class OperatorEpochWatermarkTrackerFactoryTest extends TestLogger {
 
     @Before
     public void before() {
-        env = StreamExecutionEnvironment.getExecutionEnvironment();
+        Configuration config = new Configuration();
+        config.set(PipelineOptions.GENERIC_TYPES, false);
+        env = StreamExecutionEnvironment.getExecutionEnvironment(config);
         env.getConfig().enableObjectReuse();
-        env.getConfig().disableGenericTypes();
     }
 
     @Test
@@ -183,8 +186,14 @@ public class OperatorEpochWatermarkTrackerFactoryTest extends TestLogger {
     private static class OneInputProgressTrackingOperator extends AbstractStreamOperator<Integer>
             implements OneInputStreamOperator<Integer, Integer> {
 
+        private final ChainingStrategy chainingStrategyValue;
+
         public OneInputProgressTrackingOperator(ChainingStrategy chainingStrategy) {
-            this.chainingStrategy = chainingStrategy;
+            this.chainingStrategyValue = chainingStrategy;
+        }
+
+        public ChainingStrategy getChainingStrategy() {
+            return chainingStrategyValue;
         }
 
         @Override

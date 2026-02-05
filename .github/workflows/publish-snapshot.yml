@@ -41,16 +41,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION=$(git rev-parse --short HEAD)
-          mvn -B versions:set -DnewVersion=grepr-${VERSION} -DgenerateBackupPoms=false
-          
+
           tmp_settings="tmp-settings.xml"
           echo "<settings><servers><server>" > $tmp_settings
           echo "<id>github</id><username>${GITHUB_ACTOR}</username>" >> $tmp_settings
           echo "<password>${GITHUB_TOKEN}</password>" >> $tmp_settings
           echo "</server></servers></settings>" >> $tmp_settings
-          
-          mvn -B --settings $tmp_settings clean deploy \
-          -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/grepr/flink-ml \
-          -pl flink-ml-iteration-2.2 -am -DskipTests -Dspotless.check.skip=true
-          
+
+          MAVEN_OPTS="-B -DskipTests -Dspotless.check.skip=true -Drat.skip=true -Dcheckstyle.skip=true"
+          DEPLOY_OPTS="$MAVEN_OPTS --settings $tmp_settings -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/grepr/flink-ml"
+
+          # Set version on all modules (versions:set finds aggregator root and updates everything)
+          mvn $MAVEN_OPTS -N versions:set -DnewVersion=2.4-grepr-${VERSION} -DgenerateBackupPoms=false
+
+          # Deploy root parent pom
+          mvn $DEPLOY_OPTS -N deploy
+
+          # Deploy flink-ml-iteration parent pom
+          mvn $DEPLOY_OPTS -f flink-ml-iteration/pom.xml -N deploy
+
+          # Deploy only the child modules (not the parent again)
+          mvn $DEPLOY_OPTS -f flink-ml-iteration/pom.xml -pl flink-ml-iteration-common,flink-ml-iteration-2.2 deploy
+
           rm $tmp_settings

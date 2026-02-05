@@ -20,9 +20,11 @@ package org.apache.flink.iteration.proxy;
 
 import org.apache.flink.iteration.IterationRecord;
 import org.apache.flink.iteration.typeinfo.IterationRecordTypeInfo;
+import org.apache.flink.runtime.event.WatermarkEvent;
 import org.apache.flink.streaming.api.operators.Output;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.streamrecord.LatencyMarker;
+import org.apache.flink.streaming.runtime.streamrecord.RecordAttributes;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.watermarkstatus.WatermarkStatus;
 import org.apache.flink.util.OutputTag;
@@ -82,6 +84,16 @@ public class ProxyOutput<T> implements Output<StreamRecord<T>> {
     @Override
     public void emitLatencyMarker(LatencyMarker latencyMarker) {
         output.emitLatencyMarker(latencyMarker);
+    }
+
+    @Override
+    public void emitRecordAttributes(RecordAttributes recordAttributes) {
+        output.emitRecordAttributes(recordAttributes);
+    }
+
+    @Override
+    public void emitWatermark(WatermarkEvent watermark) {
+        // For now, we only supports the MAX_WATERMARK separately for each operator.
     }
 
     @Override

@@ -203,11 +203,13 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
                                 checkState(
                                         oldParallelism
                                                 == getRuntimeContext()
+                                                        .getTaskInfo()
                                                         .getNumberOfParallelSubtasks(),
                                         "The head operator is recovered with parallelism changed from "
                                                 + oldParallelism
                                                 + " to "
                                                 + getRuntimeContext()
+                                                        .getTaskInfo()
                                                         .getNumberOfParallelSubtasks()));
 
         // Initialize the status and the record processor.
@@ -258,8 +260,8 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
                         OperatorUtils.<IterationRecord<?>>createFeedbackKey(
                                         iterationId, feedbackIndex)
                                 .withSubTaskIndex(
-                                        getRuntimeContext().getIndexOfThisSubtask(),
-                                        getRuntimeContext().getAttemptNumber()),
+                                        getRuntimeContext().getTaskInfo().getIndexOfThisSubtask(),
+                                        getRuntimeContext().getTaskInfo().getAttemptNumber()),
                         checkpoints);
 
         try {
@@ -296,9 +298,10 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
 
         // Always clear the union list state before set value.
         parallelismState.clear();
-        if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
+        if (getRuntimeContext().getTaskInfo().getIndexOfThisSubtask() == 0) {
             parallelismState.update(
-                    Collections.singletonList(getRuntimeContext().getNumberOfParallelSubtasks()));
+                    Collections.singletonList(
+                            getRuntimeContext().getTaskInfo().getNumberOfParallelSubtasks()));
         }
         statusState.update(Collections.singletonList(status.ordinal()));
 
@@ -427,8 +430,8 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
 
     private void registerFeedbackConsumer(Executor mailboxExecutor)
             throws MemoryAllocationException {
-        int indexOfThisSubtask = getRuntimeContext().getIndexOfThisSubtask();
-        int attemptNum = getRuntimeContext().getAttemptNumber();
+        int indexOfThisSubtask = getRuntimeContext().getTaskInfo().getIndexOfThisSubtask();
+        int attemptNum = getRuntimeContext().getTaskInfo().getAttemptNumber();
         FeedbackKey<StreamRecord<IterationRecord<?>>> feedbackKey =
                 OperatorUtils.createFeedbackKey(iterationId, feedbackIndex);
         SubtaskFeedbackKey<StreamRecord<IterationRecord<?>>> key =
@@ -591,6 +594,15 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
         }
 
         @Override
+        public void execute(
+                MailOptions mailOptions,
+                ThrowingRunnable<? extends Exception> command,
+                String descriptionFormat,
+                Object... descriptionArgs) {
+            mailboxExecutor.execute(mailOptions, command, descriptionFormat, descriptionArgs);
+        }
+
+        @Override
         public void yield() throws InterruptedException, FlinkRuntimeException {
             mailboxExecutor.yield();
         }
@@ -598,6 +610,11 @@ public class HeadOperator extends AbstractStreamOperator<IterationRecord<?>>
         @Override
         public boolean tryYield() throws FlinkRuntimeException {
             return mailboxExecutor.tryYield();
+        }
+
+        @Override
+        public boolean shouldInterrupt() {
+            return mailboxExecutor.shouldInterrupt();
         }
 
         /**

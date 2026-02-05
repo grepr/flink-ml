@@ -18,6 +18,7 @@
 
 package org.apache.flink.iteration.proxy.state;
 
+import org.apache.flink.runtime.state.AsyncKeyedStateBackend;
 import org.apache.flink.runtime.state.CheckpointableKeyedStateBackend;
 import org.apache.flink.runtime.state.KeyGroupStatePartitionStreamProvider;
 import org.apache.flink.runtime.state.OperatorStateBackend;
@@ -78,6 +79,16 @@ public class ProxyStreamOperatorStateContext implements StreamOperatorStateConte
     }
 
     @Override
+    public AsyncKeyedStateBackend<?> asyncKeyedStateBackend() {
+        return wrapped.asyncKeyedStateBackend();
+    }
+
+    @Override
+    public org.apache.flink.api.common.typeutils.TypeSerializer<?> keySerializer() {
+        return wrapped.keySerializer();
+    }
+
+    @Override
     public InternalTimeServiceManager<?> internalTimerServiceManager() {
         return wrapped.internalTimerServiceManager() == null
                 ? null
@@ -93,6 +104,14 @@ public class ProxyStreamOperatorStateContext implements StreamOperatorStateConte
     @Override
     public CloseableIterable<KeyGroupStatePartitionStreamProvider> rawKeyedStateInputs() {
         return CloseableIterable.empty();
+    }
+
+    @Override
+    public InternalTimeServiceManager<?> asyncInternalTimerServiceManager() {
+        return wrapped.asyncInternalTimerServiceManager() == null
+                ? null
+                : new ProxyInternalTimeServiceManager<>(
+                        wrapped.asyncInternalTimerServiceManager(), stateNamePrefix);
     }
 
     private class RawOperatorStateIterable

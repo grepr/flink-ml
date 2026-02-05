@@ -44,6 +44,8 @@ import org.apache.flink.runtime.state.heap.HeapPriorityQueueElement;
 import javax.annotation.Nonnull;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.RunnableFuture;
 import java.util.stream.Stream;
@@ -64,6 +66,11 @@ public class ProxyKeyedStateBackend<K> implements CheckpointableKeyedStateBacken
     @Override
     public void setCurrentKey(K newKey) {
         wrappedBackend.setCurrentKey(newKey);
+    }
+
+    @Override
+    public void setCurrentKeyAndKeyGroup(K newKey, int keyGroupIndex) {
+        wrappedBackend.setCurrentKeyAndKeyGroup(newKey, keyGroupIndex);
     }
 
     @Override
@@ -232,5 +239,19 @@ public class ProxyKeyedStateBackend<K> implements CheckpointableKeyedStateBacken
             @Nonnull CheckpointOptions checkpointOptions)
             throws Exception {
         return wrappedBackend.snapshot(checkpointId, timestamp, streamFactory, checkpointOptions);
+    }
+
+    @Override
+    public String getBackendTypeIdentifier() {
+        return wrappedBackend.getBackendTypeIdentifier();
+    }
+
+    @Override
+    public <N> Stream<K> getKeys(List<String> states, N namespace) {
+        List<String> prefixedStates = new ArrayList<>();
+        for (String state : states) {
+            prefixedStates.add(stateNamePrefix.prefix(state));
+        }
+        return wrappedBackend.getKeys(prefixedStates, namespace);
     }
 }

@@ -54,6 +54,12 @@ public class ProxyInternalTimeServiceManager<K> implements InternalTimeServiceMa
     }
 
     @Override
+    public boolean tryAdvanceWatermark(
+            Watermark watermark, ShouldStopAdvancingFn shouldStopAdvancingFn) throws Exception {
+        return wrappedManager.tryAdvanceWatermark(watermark, shouldStopAdvancingFn);
+    }
+
+    @Override
     public void snapshotToRawKeyedState(
             KeyedStateCheckpointOutputStream stateCheckpointOutputStream, String operatorName)
             throws Exception {

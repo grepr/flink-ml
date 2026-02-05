@@ -32,7 +32,6 @@ import org.apache.flink.streaming.api.operators.CoordinatedOperatorFactory;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperatorFactory;
 import org.apache.flink.streaming.api.operators.StreamOperator;
 import org.apache.flink.streaming.api.operators.StreamOperatorParameters;
-import org.apache.flink.streaming.api.operators.YieldingOperatorFactory;
 import org.apache.flink.streaming.runtime.tasks.mailbox.TaskMailbox;
 
 import static org.apache.flink.util.Preconditions.checkArgument;
@@ -40,8 +39,7 @@ import static org.apache.flink.util.Preconditions.checkArgument;
 /** The Factory for the {@link HeadOperator}. */
 public class HeadOperatorFactory extends AbstractStreamOperatorFactory<IterationRecord<?>>
         implements OneInputStreamOperatorFactory<IterationRecord<?>, IterationRecord<?>>,
-                CoordinatedOperatorFactory<IterationRecord<?>>,
-                YieldingOperatorFactory<IterationRecord<?>> {
+                CoordinatedOperatorFactory<IterationRecord<?>> {
 
     private final IterationID iterationId;
 
