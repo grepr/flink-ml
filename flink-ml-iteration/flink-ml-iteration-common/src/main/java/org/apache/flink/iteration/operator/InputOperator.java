@@ -20,7 +20,6 @@ package org.apache.flink.iteration.operator;
 
 import org.apache.flink.iteration.IterationRecord;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
-import org.apache.flink.streaming.api.operators.ChainingStrategy;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
@@ -31,9 +30,7 @@ public class InputOperator<T> extends AbstractStreamOperator<IterationRecord<T>>
 
     private transient StreamRecord<IterationRecord<T>> reusable;
 
-    public InputOperator() {
-        this.chainingStrategy = ChainingStrategy.ALWAYS;
-    }
+    public InputOperator() {}
 
     @Override
     public void open() throws Exception {

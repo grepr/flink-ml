@@ -96,6 +96,7 @@ public class OperatorUtils {
                                 operator.getRuntimeContext()
                                         .getTaskManagerRuntimeInfo()
                                         .getConfiguration(),
+                                containingTask.getEnvironment().getTaskConfiguration(),
                                 operator.getRuntimeContext().getUserCodeClassLoader());
         long feedbackChannelBufferSize = totalManagedMemory.multiply(fraction).getBytes();
         feedbackChannel.initialize(

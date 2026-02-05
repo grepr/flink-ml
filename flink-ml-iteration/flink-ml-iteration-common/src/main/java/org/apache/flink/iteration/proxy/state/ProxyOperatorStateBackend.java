@@ -102,6 +102,28 @@ public class ProxyOperatorStateBackend implements OperatorStateBackend {
     }
 
     @Override
+    public <K, V> BroadcastState<K, V> getBroadcastState(
+            org.apache.flink.api.common.state.v2.MapStateDescriptor<K, V> stateDescriptor)
+            throws Exception {
+        org.apache.flink.api.common.state.v2.MapStateDescriptor<K, V> newDescriptor;
+        if (stateDescriptor.isSerializerInitialized()) {
+            newDescriptor =
+                    new org.apache.flink.api.common.state.v2.MapStateDescriptor<>(
+                            stateNamePrefix.prefix(stateDescriptor.getStateId()),
+                            stateDescriptor.getUserKeySerializer(),
+                            stateDescriptor.getSerializer());
+        } else {
+            MapTypeInfo<K, V> mapTypeInfo = getMapTypeInfo(stateDescriptor);
+            newDescriptor =
+                    new org.apache.flink.api.common.state.v2.MapStateDescriptor<>(
+                            stateNamePrefix.prefix(stateDescriptor.getStateId()),
+                            mapTypeInfo.getKeyTypeInfo(),
+                            mapTypeInfo.getValueTypeInfo());
+        }
+        return wrappedBackend.getBroadcastState(newDescriptor);
+    }
+
+    @Override
     public Set<String> getRegisteredStateNames() {
         Set<String> filteredNames = new HashSet<>();
         Set<String> names = wrappedBackend.getRegisteredStateNames();
@@ -127,6 +149,28 @@ public class ProxyOperatorStateBackend implements OperatorStateBackend {
         }
 
         return filteredNames;
+    }
+
+    @Override
+    public <S> org.apache.flink.api.common.state.v2.ListState<S> getUnionListState(
+            org.apache.flink.api.common.state.v2.ListStateDescriptor<S> stateDescriptor)
+            throws Exception {
+        org.apache.flink.api.common.state.v2.ListStateDescriptor<S> newDescriptor =
+                new org.apache.flink.api.common.state.v2.ListStateDescriptor<>(
+                        stateNamePrefix.prefix(stateDescriptor.getStateId()),
+                        stateDescriptor.getSerializer());
+        return wrappedBackend.getUnionListState(newDescriptor);
+    }
+
+    @Override
+    public <S> org.apache.flink.api.common.state.v2.ListState<S> getListState(
+            org.apache.flink.api.common.state.v2.ListStateDescriptor<S> stateDescriptor)
+            throws Exception {
+        org.apache.flink.api.common.state.v2.ListStateDescriptor<S> newDescriptor =
+                new org.apache.flink.api.common.state.v2.ListStateDescriptor<>(
+                        stateNamePrefix.prefix(stateDescriptor.getStateId()),
+                        stateDescriptor.getSerializer());
+        return wrappedBackend.getListState(newDescriptor);
     }
 
     @Override
@@ -159,6 +203,11 @@ public class ProxyOperatorStateBackend implements OperatorStateBackend {
     }
 
     private <K, V> MapTypeInfo<K, V> getMapTypeInfo(MapStateDescriptor<K, V> stateDescriptor) {
+        return ReflectionUtils.getFieldValue(stateDescriptor, StateDescriptor.class, "typeInfo");
+    }
+
+    private <K, V> MapTypeInfo<K, V> getMapTypeInfo(
+            org.apache.flink.api.common.state.v2.MapStateDescriptor<K, V> stateDescriptor) {
         return ReflectionUtils.getFieldValue(stateDescriptor, StateDescriptor.class, "typeInfo");
     }
 }

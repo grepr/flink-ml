@@ -36,7 +36,7 @@ import org.apache.flink.iteration.operator.OperatorWrapper;
 import org.apache.flink.iteration.utils.ReflectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.source.RichParallelSourceFunction;
+import org.apache.flink.streaming.api.functions.source.legacy.RichParallelSourceFunction;
 import org.apache.flink.streaming.api.graph.StreamGraph;
 import org.apache.flink.streaming.api.transformations.BroadcastStateTransformation;
 import org.apache.flink.streaming.api.transformations.KeyedBroadcastStateTransformation;

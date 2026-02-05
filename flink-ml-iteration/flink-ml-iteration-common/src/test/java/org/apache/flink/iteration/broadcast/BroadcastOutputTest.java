@@ -20,11 +20,12 @@ package org.apache.flink.iteration.broadcast;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.SingleOutputStreamOperator;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
-import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
-import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.functions.sink.legacy.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.source.legacy.SourceFunction;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
@@ -168,14 +169,15 @@ public class BroadcastOutputTest extends TestLogger {
     // ------------------------------------------------------------------------
 
     private StreamExecutionEnvironment createTestEnvironment() {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        Configuration config = new Configuration();
+        config.set(PipelineOptions.GENERIC_TYPES, false);
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment(config);
 
         if (objectReuseEnabled) {
             env.getConfig().enableObjectReuse();
         } else {
             env.getConfig().disableObjectReuse();
         }
-        env.getConfig().disableGenericTypes();
         env.setParallelism(1);
 
         return env;
@@ -225,8 +227,9 @@ public class BroadcastOutputTest extends TestLogger {
         private List<Integer> received;
 
         @Override
-        public void open(Configuration parameters) throws Exception {
-            super.open(parameters);
+        public void open(org.apache.flink.api.common.functions.OpenContext openContext)
+                throws Exception {
+            super.open(openContext);
             received = new ArrayList<>(NUM_RECORDS);
         }
 

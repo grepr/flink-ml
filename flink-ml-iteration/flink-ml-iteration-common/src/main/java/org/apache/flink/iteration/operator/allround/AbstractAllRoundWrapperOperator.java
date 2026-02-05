@@ -263,7 +263,8 @@ public abstract class AbstractAllRoundWrapperOperator<T, S extends StreamOperato
                 @Nonnull CloseableRegistry closeableRegistry,
                 @Nonnull MetricGroup metricGroup,
                 double v,
-                boolean b)
+                boolean b,
+                boolean isUsingAsyncKeyedState)
                 throws Exception {
             lastCreated =
                     wrapped.streamOperatorStateContext(
@@ -275,7 +276,8 @@ public abstract class AbstractAllRoundWrapperOperator<T, S extends StreamOperato
                             closeableRegistry,
                             metricGroup,
                             v,
-                            b);
+                            b,
+                            isUsingAsyncKeyedState);
             return lastCreated;
         }
     }

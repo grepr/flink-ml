@@ -44,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -165,7 +166,9 @@ public abstract class AbstractWrapperOperator<T>
                     environment
                             .getMetricGroup()
                             .getOrAddOperator(
-                                    streamConfig.getOperatorID(), streamConfig.getOperatorName());
+                                    streamConfig.getOperatorID(),
+                                    streamConfig.getOperatorName(),
+                                    Collections.emptyMap());
             if (streamConfig.isChainEnd()) {
                 operatorMetricGroup.getIOMetricGroup().reuseOutputMetricsForTask();
             }

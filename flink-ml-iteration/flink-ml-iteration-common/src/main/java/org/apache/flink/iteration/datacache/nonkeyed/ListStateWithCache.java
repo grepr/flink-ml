@@ -94,6 +94,7 @@ public class ListStateWithCache<T> implements ListState<T> {
                 config.getManagedMemoryFractionOperatorUseCaseOfSlot(
                         ManagedMemoryUseCase.OPERATOR,
                         runtimeContext.getTaskManagerRuntimeInfo().getConfiguration(),
+                        environment.getTaskConfiguration(),
                         runtimeContext.getUserCodeClassLoader());
         if (fraction > 0) {
             OperatorScopeManagedMemoryManager manager =

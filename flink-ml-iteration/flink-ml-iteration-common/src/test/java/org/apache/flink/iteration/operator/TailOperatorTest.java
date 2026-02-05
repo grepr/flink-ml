@@ -51,7 +51,8 @@ public class TailOperatorTest extends TestLogger {
 
         IterationRecordTypeInfo typeInfo =
                 new IterationRecordTypeInfo<>(BasicTypeInfo.INT_TYPE_INFO);
-        TypeSerializer serializer = typeInfo.createSerializer(new ExecutionConfig());
+        TypeSerializer serializer =
+                typeInfo.createSerializer(new ExecutionConfig().getSerializerConfig());
         OneInputStreamOperatorTestHarness<IterationRecord<?>, Void> testHarness =
                 new OneInputStreamOperatorTestHarness<>(
                         new TailOperator(iterationId, 0), serializer);
@@ -78,7 +79,8 @@ public class TailOperatorTest extends TestLogger {
 
         IterationRecordTypeInfo typeInfo =
                 new IterationRecordTypeInfo<>(BasicTypeInfo.INT_TYPE_INFO);
-        TypeSerializer serializer = typeInfo.createSerializer(new ExecutionConfig());
+        TypeSerializer serializer =
+                typeInfo.createSerializer(new ExecutionConfig().getSerializerConfig());
 
         OneInputStreamOperatorTestHarness<IterationRecord<?>, Void> testHarness =
                 new OneInputStreamOperatorTestHarness<>(
@@ -114,7 +116,8 @@ public class TailOperatorTest extends TestLogger {
 
         IterationRecordTypeInfo typeInfo =
                 new IterationRecordTypeInfo<>(BasicTypeInfo.INT_TYPE_INFO);
-        TypeSerializer serializer = typeInfo.createSerializer(new ExecutionConfig());
+        TypeSerializer serializer =
+                typeInfo.createSerializer(new ExecutionConfig().getSerializerConfig());
         OneInputStreamOperatorTestHarness<IterationRecord<?>, Void> testHarness =
                 new OneInputStreamOperatorTestHarness<>(
                         new TailOperator(iterationId, 0), serializer);

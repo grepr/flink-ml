@@ -45,7 +45,8 @@ public class ReduceTransformationTranslator
                         draftTransformation.getReducer(),
                         draftTransformation
                                 .getInputType()
-                                .createSerializer(context.getExecutionConfig()));
+                                .createSerializer(
+                                        context.getExecutionConfig().getSerializerConfig()));
         OneInputTransformation<?, ?> actualTransformation =
                 new OneInputTransformation(
                         context.getActualTransformation(

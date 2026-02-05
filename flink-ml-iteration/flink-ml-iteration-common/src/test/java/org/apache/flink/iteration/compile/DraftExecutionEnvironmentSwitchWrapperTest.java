@@ -23,6 +23,8 @@ import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.functions.KeySelector;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.configuration.PipelineOptions;
 import org.apache.flink.iteration.operator.OperatorWrapper;
 import org.apache.flink.iteration.operator.WrapperOperatorFactory;
 import org.apache.flink.streaming.api.datastream.DataStream;
@@ -53,9 +55,10 @@ public class DraftExecutionEnvironmentSwitchWrapperTest extends TestLogger {
 
     @Test
     public void testSwitchingOperatorWrappers() {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        Configuration config = new Configuration();
+        config.set(PipelineOptions.GENERIC_TYPES, false);
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(config);
         env.getConfig().enableObjectReuse();
-        env.getConfig().disableGenericTypes();
         DataStream<Integer> source =
                 env.addSource(new DraftExecutionEnvironment.EmptySource<Integer>() {});
 

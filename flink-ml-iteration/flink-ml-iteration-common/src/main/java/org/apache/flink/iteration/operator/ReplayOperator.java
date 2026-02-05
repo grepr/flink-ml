@@ -135,11 +135,13 @@ public class ReplayOperator<T> extends AbstractStreamOperator<IterationRecord<T>
                                 checkState(
                                         oldParallelism
                                                 == getRuntimeContext()
+                                                        .getTaskInfo()
                                                         .getNumberOfParallelSubtasks(),
                                         "The Replay operator is recovered with parallelism changed from "
                                                 + oldParallelism
                                                 + " to "
                                                 + getRuntimeContext()
+                                                        .getTaskInfo()
                                                         .getNumberOfParallelSubtasks()));
 
         currentEpochState =
@@ -195,9 +197,10 @@ public class ReplayOperator<T> extends AbstractStreamOperator<IterationRecord<T>
 
         // Always clears the union list state before set value.
         parallelismState.clear();
-        if (getRuntimeContext().getIndexOfThisSubtask() == 0) {
+        if (getRuntimeContext().getTaskInfo().getIndexOfThisSubtask() == 0) {
             parallelismState.update(
-                    Collections.singletonList(getRuntimeContext().getNumberOfParallelSubtasks()));
+                    Collections.singletonList(
+                            getRuntimeContext().getTaskInfo().getNumberOfParallelSubtasks()));
         }
 
         currentEpochState.update(Collections.singletonList(currentEpoch));

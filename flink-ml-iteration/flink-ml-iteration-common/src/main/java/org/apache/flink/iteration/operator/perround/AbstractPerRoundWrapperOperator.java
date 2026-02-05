@@ -26,7 +26,6 @@ import org.apache.flink.api.common.typeutils.base.IntSerializer;
 import org.apache.flink.api.java.functions.KeySelector;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MetricOptions;
-import org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend;
 import org.apache.flink.core.memory.ManagedMemoryUseCase;
 import org.apache.flink.iteration.IterationListener;
 import org.apache.flink.iteration.IterationRecord;
@@ -51,6 +50,7 @@ import org.apache.flink.runtime.state.StateInitializationContext;
 import org.apache.flink.runtime.state.StatePartitionStreamProvider;
 import org.apache.flink.runtime.state.StateSnapshotContext;
 import org.apache.flink.runtime.state.heap.HeapKeyedStateBackend;
+import org.apache.flink.state.rocksdb.RocksDBKeyedStateBackend;
 import org.apache.flink.streaming.api.operators.InternalTimeServiceManager;
 import org.apache.flink.streaming.api.operators.OperatorSnapshotFutures;
 import org.apache.flink.streaming.api.operators.StreamOperator;
@@ -98,7 +98,7 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
             "org.apache.flink.runtime.state.heap.HeapKeyedStateBackend";
 
     private static final String ROCKSDB_KEYED_STATE_NAME =
-            "org.apache.flink.contrib.streaming.state.RocksDBKeyedStateBackend";
+            "org.apache.flink.state.rocksdb.RocksDBKeyedStateBackend";
 
     /** The wrapped operators for each round. */
     private final Map<Integer, S> wrappedOperators;
@@ -264,8 +264,10 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
                                         .getEnvironment()
                                         .getTaskManagerInfo()
                                         .getConfiguration(),
+                                containingTask.getEnvironment().getTaskConfiguration(),
                                 containingTask.getUserCodeClassLoader()),
-                        isUsingCustomRawKeyedState());
+                        isUsingCustomRawKeyedState(),
+                        false);
 
         stateHandler =
                 new StreamOperatorStateHandler(
@@ -392,7 +394,8 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
                 timestamp,
                 checkpointOptions,
                 factory,
-                isUsingCustomRawKeyedState());
+                isUsingCustomRawKeyedState(),
+                false);
     }
 
     @Override
@@ -511,7 +514,7 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
         try {
             Configuration taskManagerConfig =
                     containingTask.getEnvironment().getTaskManagerInfo().getConfiguration();
-            int historySize = taskManagerConfig.getInteger(MetricOptions.LATENCY_HISTORY_SIZE);
+            int historySize = taskManagerConfig.get(MetricOptions.LATENCY_HISTORY_SIZE);
             if (historySize <= 0) {
                 LOG.warn(
                         "{} has been set to a value equal or below 0: {}. Using default.",
@@ -521,7 +524,7 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
             }
 
             final String configuredGranularity =
-                    taskManagerConfig.getString(MetricOptions.LATENCY_SOURCE_GRANULARITY);
+                    taskManagerConfig.get(MetricOptions.LATENCY_SOURCE_GRANULARITY);
             LatencyStats.Granularity granularity;
             try {
                 granularity =
@@ -535,7 +538,7 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
                         MetricOptions.LATENCY_SOURCE_GRANULARITY.key(),
                         granularity);
             }
-            MetricGroup jobMetricGroup = this.metrics.getJobMetricGroup();
+            MetricGroup jobMetricGroup = this.metrics.getTaskMetricGroup();
             return new LatencyStats(
                     jobMetricGroup.addGroup("latency"),
                     historySize,
@@ -569,7 +572,8 @@ public abstract class AbstractPerRoundWrapperOperator<T, S extends StreamOperato
                         streamTaskCloseableRegistry,
                         metricGroup,
                         managedMemoryFraction,
-                        isUsingCustomRawKeyedState) ->
+                        isUsingCustomRawKeyedState,
+                        isUsingAsyncKeyedState) ->
                         new ProxyStreamOperatorStateContext(
                                 streamOperatorStateContext,
                                 getRoundStatePrefix(round),
